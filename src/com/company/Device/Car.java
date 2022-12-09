@@ -3,6 +3,8 @@ package com.company.Device;
 import com.company.Interfaces.Sell;
 import com.company.Person.Human;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -89,10 +91,14 @@ public class Car implements Sell {
 
     @Override
     public void sell(Human seller, Human buyer, Double price) throws Exception {
-        System.out.println("Dealer: Prosze podaj numer auta ktore Cie interesuje");
-        Scanner sc = new Scanner(System.in);
-        int carChoose = sc.nextInt();
-
-
+        if(buyer.cash < baseValue){
+            throw new Exception("Nie stać Cię na auto.");
+        }
+        buyer.cash -= baseValue;
+        seller.cash += baseValue;
+        buyer.humanCars.add(this);
+        seller.humanCars.remove(this);
+        System.out.println("Sprzedano");
     }
 }
+

@@ -3,8 +3,6 @@ package com.company;
 import com.company.Device.Car;
 import com.company.Person.Human;
 
-import java.lang.reflect.Array;
-import java.sql.SQLOutput;
 import java.util.*;
 
 import static java.lang.Math.round;
@@ -16,76 +14,49 @@ public class Main {
         // tworzymy wlasciciela komisu i dealera aut ktory dla nas sprowadza furki
         Human Owner = new Human();
         Human Dealer = new Human();
-
-
-        // deklaracje przydatne w dalszej czesci kodu
-        Random rd = new Random();
-        Scanner sc = new Scanner(System.in);
-
-        // stan rozgrywki
-        int moveCounter = 0;
-        Boolean gameOver = false;
-
-        // tablice i liczby losowe pomocne w generowaniu aut
-        String[] carColours = {"blue", "black", "violet", "white", "silver", "red", "gold"};
-        String[] carModels = {"Volvo", "Seat", "Peugeot", "Honda", "Toyota", "VW", "Ford"};
-        String[] carType = {"budget", "premium", "standard"};
-
-
-        // generowanie tablicy carBase - 20 obiektów klasy Car o losowych parametrach - w kazdym kolku petli tworza sie nowe wartosci typu random
-        // po kazdym wykonaniu petli wygenerowane aut przypisuje sie do dealera - na poczatku nasz user nie ma aut, wiec wszystko jest u dostawcy
-        // czy generowanie aut da sie wsadzic do klasy Car?
+        Owner.cash = 50000.0;
+        Dealer.cash = 100000.0;
         Car[] carBase = new Car[20];
 
-        for (int i = 0; i < carBase.length; i++) {
-            int randCol = rd.nextInt(carColours.length);
-            int randMod = rd.nextInt(carModels.length);
-            int randType = rd.nextInt(carType.length);
-            double randMillage = rd.nextDouble() * (100000.0 - 10000.0);
-            double randBasePrice = rd.nextDouble() * (50000.0 - 5000.0);
-            randMillage = round(randMillage);
-            randBasePrice = round(randBasePrice);
-            carBase[i] = new Car(carModels[randMod], carColours[randCol], randMillage, randBasePrice, carType[randType], rd.nextBoolean(), rd.nextBoolean(), rd.nextBoolean(), rd.nextBoolean(), rd.nextBoolean());
-            Dealer.humanCars.add(carBase[i]);
-        }
+        Random rd = new Random();
+        Scanner sc = new Scanner(System.in);
+        int moveCounter = 0;
+        Boolean gameOver = false;
 
         // blok generujacy indeksy pomocne w losowaniu aut dostepnych danego dnia
         ArrayList<Integer> list = new ArrayList<Integer>();
         for (int i=0; i<19; i++) list.add(i);
 
+        // generowanie bazy samochodow i przypisanie kazdego z obiektow do bazy dealera
+        for (int i = 0; i < carBase.length; i++) {
+            carBase[i] = CarGenerator.genericCar();
+            Dealer.humanCars.add(carBase[i]);
+        }
+
         // mechanika pierwszego "ekranu gry - powitania"
-        System.out.println("Witaj w symulatorze komisu samochodowego. Za chwile rozpocznie sie Twoja przygoda!");
-        System.out.println("Prosze, podaj swoje imie:");
+        Communication.welcome1();
         Owner.name = sc.nextLine();
-        System.out.println(Owner.name + ", milo Cie poznac. Gre zaczynasz posiadajac 50 000 PLN. Niestety nie posiadasz zadnych samochodow.");
-        Owner.cash = 50000.0;
-        System.out.println("Wkrotce to sie zmieni. :)");
-        System.out.println("Wygrasz rozgrywke jesli podwoisz stan swojego konta. Wynik bedzie tym lepszy im mniej wykonasz ruchow.");
+        System.out.println("Czesc " + Owner.name + "!");
+        Communication.welcome2();
 
 
-        // ----- PETLA GLOWNA GRY -----
+        // --------------------------------------- PETLA GLOWNA GRY ---------------------------------------------------------------
 
-        while (gameOver) {
+        while (gameOver != true) {
 
             // kontrolka stanu gry
             gameOver = Owner.cash > 1000000.0;
 
             // MAIN MENU
-            System.out.println("--- MENU GLOWNE ---");
-            System.out.println("1. Wyswietl liste posiadanych samochodow.");
-            System.out.println("2. Sprawdz, jakie auta sa dostepne do zakupu.");
-            System.out.println("3. Wyswietl stan konta i liczbe wykonanych ruchow.");
-            System.out.println("4. Wyswietl stan posiadanych aut i ich cene.");
-
-            System.out.println("Wpisz, co chcesz zrobic:");
+            Communication.mainMenu();
             int menuChoice = sc.nextInt();
 
             // WYBOR OPCJI Z MENU
             switch (menuChoice) {
                 case 1:
                     if(Owner.humanCars.isEmpty()) {
-                        System.out.println("Autokomis: Niestety nie posiadasz zadnych samochodow.");
-                        System.out.println("Autokomis: Nastapi powrot do menu glownego.");
+                        Communication.noCarsAvailable();
+                        Communication.backToMainMenu();
                     } else {
                         System.out.println("Autokomis: Oto lista Twoich samochodow:");
                         System.out.println(Owner.getHumanCars());
@@ -93,9 +64,9 @@ public class Main {
                     break;
 
                 case 2:
-                    System.out.println("Dealer: Witaj przyjacielu, czy chcialbys kupic nowe auto do komisu?");
-                    System.out.println("Dealer: Sprowadzilem dzis dla Ciebie kilka swietnych modeli. Sam zobacz!");
+                    Communication.dealerIntro();
 
+                    // w kazdym kolku petli pobieramy nowy zestaw indeksow obiektow z tablicy CarBase
                     Collections.shuffle(list);
                     int carIndex1 = list.get(1);
                     int carIndex2 = list.get(2);
@@ -114,35 +85,95 @@ public class Main {
                     System.out.println("Samochod nr 5:");
                     System.out.println(Dealer.humanCars.get(carIndex5));
 
-                    System.out.println("Dealer: Czy chcesz kupic ktorys z moich samochodow?");
-                    System.out.println("Aby odpowiedziec wybierz: 1 - Y, 2 - N");
+                    Communication.dealerBuyOffer();
                     int wannaBuy = sc.nextInt();
                     if (wannaBuy == 1){
-                        // System.out.println("Dealer: Prosze podaj numer auta ktore Cie interesuje");
+                        System.out.println("Dealer: Wybierz prosze numer samochodu, ktory Cie interesuje:");
+                        int carChoose = sc.nextInt();
+                        if (carChoose == 1){
+                            try{
+                                Dealer.humanCars.get(carIndex1).sell(Dealer, Owner, Dealer.humanCars.get(carIndex1).baseValue);
+                                // po sprzedazy powinno nastapic uzupelnienie brakujacego rekordu w bazie
+                                carBase[carIndex1] = CarGenerator.genericCar();
+                                Dealer.humanCars.add(carBase[carIndex1]);
+                                // nadpisujemy movecounter
+                                moveCounter += 1;
+                            } catch (Exception e){
+                                System.out.println("Dealer: Niestety nie udalo sie sprzedac modelu: " + Dealer.humanCars.get(carIndex1).model);
+                                Communication.backToMainMenu();
+                                e.printStackTrace();
+                            }
 
+                        } else if (carChoose == 2){
+                            try{
+                                Dealer.humanCars.get(carIndex2).sell(Dealer, Owner, Dealer.humanCars.get(carIndex2).baseValue);
+                                // po sprzedazy powinno nastapic uzupelnienie brakujacego rekordu w bazie
+                                carBase[carIndex2] = CarGenerator.genericCar();
+                                Dealer.humanCars.add(carBase[carIndex2]);
+                                // nadpisujemy movecounter
+                                moveCounter += 1;
+                            } catch (Exception e){
+                                System.out.println("Dealer: Niestety nie udalo sie sprzedac modelu: " + Dealer.humanCars.get(carIndex2).model);
+                                Communication.backToMainMenu();
+                                e.printStackTrace();
+                            }
 
+                        } else if (carChoose == 3){
+                            try{
+                                Dealer.humanCars.get(carIndex3).sell(Dealer, Owner, Dealer.humanCars.get(carIndex3).baseValue);
+                                // po sprzedazy powinno nastapic uzupelnienie brakujacego rekordu w bazie
+                                carBase[carIndex3] = CarGenerator.genericCar();
+                                Dealer.humanCars.add(carBase[carIndex3]);
+                                // nadpisujemy movecounter
+                                moveCounter += 1;
+                            } catch (Exception e){
+                                System.out.println("Dealer: Niestety nie udalo sie sprzedac modelu: " + Dealer.humanCars.get(carIndex3).model);
+                                Communication.backToMainMenu();
+                                e.printStackTrace();
+                            }
 
+                        } else if (carChoose == 4){
+                            try{
+                                Dealer.humanCars.get(carIndex4).sell(Dealer, Owner, Dealer.humanCars.get(carIndex4).baseValue);
+                                // po sprzedazy powinno nastapic uzupelnienie brakujacego rekordu w bazie
+                                carBase[carIndex4] = CarGenerator.genericCar();
+                                Dealer.humanCars.add(carBase[carIndex4]);
+                                // nadpisujemy movecounter
+                                moveCounter += 1;
+                            } catch (Exception e){
+                                System.out.println("Dealer: Niestety nie udalo sie sprzedac modelu: " + Dealer.humanCars.get(carIndex4).model);
+                                Communication.backToMainMenu();
+                                e.printStackTrace();
+                            }
 
-
-                        // todo:
-                        // jesli kupi, przypisz auto do listy Usera
-                        // zredukuj jego kase o cene auta
-                        // w brakujace miejsce - indeks listy na liscie Dealera wygeneruj nowe auto
-                        // wprowadz ograniczenie wykonania petli
-                        // zwieksz movecounter po wykonaniu zakupu
+                        } else if (carChoose == 5){
+                            try{
+                                Dealer.humanCars.get(carIndex5).sell(Dealer, Owner, Dealer.humanCars.get(carIndex5).baseValue);
+                                // po sprzedazy powinno nastapic uzupelnienie brakujacego rekordu w bazie
+                                carBase[carIndex5] = CarGenerator.genericCar();
+                                Dealer.humanCars.add(carBase[carIndex5]);
+                                // nadpisujemy movecounter
+                                moveCounter += 1;
+                            } catch (Exception e){
+                                System.out.println("Dealer: Niestety nie udalo sie sprzedac modelu: " + Dealer.humanCars.get(carIndex5).model);
+                                Communication.backToMainMenu();
+                                e.printStackTrace();
+                            }
+                        } else Communication.backToMainMenu();
 
 
                     } else if(wannaBuy == 2){
                         System.out.println("Dealer: Wroc prosze pozniej, pewnie bede mial cos nowego!");
+                        Communication.backToMainMenu();
                     } else
-                        System.out.println("Autokomis: Wybrano niepoprawne polecenie. Nastapi powrot do menu glownego.");
-
+                        System.out.println("Autokomis: Wybrano niepoprawne polecenie.");
+                        Communication.backToMainMenu();
                     break;
 
                 case 3:
                     System.out.println("Posiadasz w tej chwili: " + Owner.cash + " PLN.");
                     System.out.println("Wykonales do tej pory: " + moveCounter + " ruchow.");
-                    System.out.println("Nastapi powrot do menu glownego.");
+                    Communication.backToMainMenu();
                     break;
 
                 case 4:
