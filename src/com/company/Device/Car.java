@@ -1,8 +1,12 @@
 package com.company.Device;
 
-import java.util.Random;
+import com.company.Interfaces.Sell;
+import com.company.Person.Human;
 
-public class Car {
+import java.util.Random;
+import java.util.Scanner;
+
+public class Car implements Sell {
     public String model;
     public String color;
     public Double millage;
@@ -69,4 +73,26 @@ public class Car {
         return baseValue=calculatePriceCoefficient()*baseValue;
     }
 
+    @Override
+    public String toString() {
+        return "Model: " + model +
+                ", Kolor: " + color +
+                ", Przebieg: " + millage +
+                ", Cena bazowa: " + baseValue +
+                ", Typ: " + type +
+                ". Parametry: (Hamulce: " + workingBrakes +
+                ", Zawieszenie: " + workingSuspension +
+                ", Silnik: " + workingEngine +
+                ", Karoseria: " + workingBody +
+                ", Skrzynia biegow: " + workingGearbox + ").";
+    }
+
+    @Override
+    public void sell(Human seller, Human buyer, Double price) throws Exception {
+        System.out.println("Dealer: Prosze podaj numer auta ktore Cie interesuje");
+        Scanner sc = new Scanner(System.in);
+        int carChoose = sc.nextInt();
+
+
+    }
 }
